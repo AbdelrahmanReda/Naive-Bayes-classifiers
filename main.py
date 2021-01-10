@@ -2,10 +2,15 @@ import csv
 from collections import Counter
 
 
+numberOfAttributes =50
+
+
 def readScvFile(fileName):
     with open(fileName) as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         rows = list(reader)  # rows then have all CVS file rows in form of list of list[[] ,[], [] , ...]
+        numberOfAttributes = len(rows[0])
+        print(numberOfAttributes)
         return rows
 
 
@@ -56,8 +61,9 @@ def __getAttributeUniqueValues(dictionary):
 
 
 def getUniuqLabelValuesAndCounter(rows):
+
     lis = []
-    for k, v in getLabelValuesAndCounter(rows, 3).items():
+    for k, v in getLabelValuesAndCounter(rows, len(rows[0])-1).items():
         lis.append([k, v])
     return lis
 
@@ -72,27 +78,29 @@ def getProblablity(probabilityTable, label, attribute, counter):
 def runTest(probabilityTable, uniqueValue, testRow,trainsingsetLength):
     results = []
     for label in uniqueValue:
-        print(label)
         Result = label[1]/trainsingsetLength
         for value in testRow:
+            print(label)
             Result = Result * getProblablity(probabilityTable, label, value, label[1])
 
         results.append(Result)
     return uniqueValue[results.index(max(results))][0]
 
 if __name__ == '__main__':
-    partitionedData = partitionData(readScvFile('test.csv'));
+    partitionedData = partitionData(readScvFile('car.csv'));
     trainingSet = partitionedData[0]
     testingSet = partitionedData[1]
     infoD = getUniuqLabelValuesAndCounter(trainingSet)
-
     probabilityTable = [];
-    for i in range(3):
+    numberOfAttributes =len(trainingSet[0])-1
+
+    for i in range(numberOfAttributes):
         probabilityTable.append(
-            getValueAcrossLabel(__getAttributeUniqueValues(getLabelValuesAndCounter(trainingSet, 3)),
+            getValueAcrossLabel(__getAttributeUniqueValues(getLabelValuesAndCounter(trainingSet, numberOfAttributes)),
                                 __getAttributeUniqueValues(getLabelValuesAndCounter(trainingSet, i)), trainingSet))
     #runTest(probabilityTable, infoD, ['Red', 'Suv', 'Domestic']);
     counter = 0;
+    print(numberOfAttributes)
     for row in testingSet:
         if(runTest(probabilityTable, infoD,row[:-1], len(trainingSet)) ==row[-1]):
             counter=counter+1
